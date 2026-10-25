@@ -7,6 +7,7 @@ from common.protocol import build_request, parse_kdc_reply, parse_session_info
 from common.crypto import decrypt
 from common.utils import KEY_LENGTH
 
+
 def request_session_key(kdc_host, kdc_port, id_a, id_b, ka):
     n1 = secrets.randbelow(2**32)
     with connect_to(kdc_host, kdc_port) as sock:
@@ -25,19 +26,28 @@ def request_session_key(kdc_host, kdc_port, id_a, id_b, ka):
     return ks, ticket
 
 
+def send_ticket(bob_host, bob_port, ticket):
+    with connect_to(bob_host, bob_port) as sock:
+        send_message(sock, ticket.encode("ascii"))
+        print(f"sent ticket to Bob at {bob_host}:{bob_port}")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--kdc-host", required=True)
     parser.add_argument("--kdc-port", type=int, default=5000)
     parser.add_argument("--id-a", default="Alice")
     parser.add_argument("--id-b", default="Bob")
+    parser.add_argument("--bob-host", required=True)
+    parser.add_argument("--bob-port", type=int, default=5000)
     args = parser.parse_args()
 
     ka = getpass(f"{args.id_a} master key ({KEY_LENGTH} chars): ")
     try:
         ks, ticket = request_session_key(args.kdc_host, args.kdc_port, args.id_a, args.id_b, ka)
+        send_ticket(args.bob_host, args.bob_port, ticket)
     except (ConnectionError, ValueError) as err:
-        print(f"KDC exchange failed: {err}")
+        print(f"failed: {err}")
 
 
 if __name__ == "__main__":
