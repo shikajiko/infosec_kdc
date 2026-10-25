@@ -40,9 +40,8 @@ def main():
         conn, addr = server.accept()
         with conn:
             try:
-                handle_request(conn, addr)
-            
- 
+                handle_request(conn, addr, store)
+                
             except (ConnectionError, ValueError) as err:
                 print(f"bad request from {addr[0]}: {err}")
 

@@ -1,18 +1,25 @@
 import argparse
 from getpass import getpass
 
-from common.crypto import decrypt
-from common.network import create_server, receive_message
+from common.crypto import encrypt, decrypt
+from common.network import create_server, receive_text, send_text
 from common.protocol import parse_ticket
-from common.utils import KEY_LENGTH
-
+from common.utils import KEY_LENGTH, generate_nonce, f
 
 def handle_session(conn, addr, kb):
-    ticket = receive_message(conn).decode("ascii")
+    ticket = receive_text(conn)
     print(f"[{addr[0]}:{addr[1]}] received ticket: {ticket}")
     ks, id_a = parse_ticket(decrypt(kb, ticket))
     print(f"ticket valid: session with {id_a}, Ks = {ks}")
 
+    n2 = generate_nonce()
+    send_text(conn, encrypt(ks, str(n2)))
+    print(f"sent challenge: N2 = {n2}")
+
+    answer = int(decrypt(ks, receive_text(conn)))
+    if answer != f(n2):
+        raise ValueError("wrong answer to challenge")
+    print(f"{id_a} authenticated")
 
 def main():
     parser = argparse.ArgumentParser()
@@ -29,7 +36,7 @@ def main():
             try:
                 handle_session(conn, addr, kb)
             except (ConnectionError, ValueError) as err:
-                print(f"bad ticket from {addr[0]}: {err}")
+                print(f"session failed from {addr[0]}: {err}")
 
 
 if __name__ == "__main__":

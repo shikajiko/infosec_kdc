@@ -35,3 +35,11 @@ def _receive_exact(sock, size):
 def receive_message(sock):
     (length,) = HEADER.unpack(_receive_exact(sock, HEADER.size))
     return _receive_exact(sock, length)
+
+
+def send_text(sock, text):
+    send_message(sock, text.encode("ascii"))
+
+
+def receive_text(sock):
+    return receive_message(sock).decode("ascii")
