@@ -14,9 +14,16 @@ def parse_ticket(text):
     ks, id_a = text.split(SEP)
     return ks, id_a
 
-def build_kdc_reply(ks, id_a, id_b, n1, ticket):
-    return SEP.join([ks, id_a, id_b, str(n1), ticket]).encode("ascii")
+def build_session_info(ks, id_a, id_b, n1):
+    return SEP.join([ks, id_a, id_b, str(n1)])
+
+def parse_session_info(text):
+    ks, id_a, id_b, n1 = text.split(SEP)
+    return ks, id_a, id_b, int(n1)
+
+def build_kdc_reply(for_a, ticket):
+    return SEP.join([for_a, ticket]).encode("ascii")
 
 def parse_kdc_reply(data):
-    ks, id_a, id_b, n1, ticket = data.decode("ascii").split(SEP, 4)
-    return ks, id_a, id_b, int(n1), ticket
+    for_a, ticket = data.decode("ascii").split(SEP)
+    return for_a, ticket
