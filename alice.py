@@ -5,7 +5,7 @@ from common.network import connect_to, send_message, receive_message, send_text,
 from common.protocol import build_request, parse_kdc_reply, parse_session_info
 from common.crypto import encrypt, decrypt
 from common.utils import KEY_LENGTH, generate_nonce, f
-
+from common.chat import chat
 
 def request_session_key(kdc_host, kdc_port, id_a, id_b, ka):
     n1 = generate_nonce()
@@ -25,7 +25,7 @@ def request_session_key(kdc_host, kdc_port, id_a, id_b, ka):
     return ks, ticket
 
 
-def authenticate_with_peer(peer_host, peer_port, ks, ticket):
+def authenticate_with_peer(peer_host, peer_port, ks, ticket, id_b):
     with connect_to(peer_host, peer_port) as sock:
         send_text(sock, ticket)
         print(f"sent ticket to peer at {peer_host}:{peer_port}")
@@ -33,7 +33,9 @@ def authenticate_with_peer(peer_host, peer_port, ks, ticket):
         print(f"received challenge: N2 = {n2}")
         send_text(sock, encrypt(ks, str(f(n2))))
         print(f"sent response: f(N2) = {f(n2)}")
-        
+        print(f"handshake sent. type /quit to exit")
+        chat(sock, ks, id_b)
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -48,7 +50,7 @@ def main():
     ka = getpass(f"{args.id_a} master key ({KEY_LENGTH} chars): ")
     try:
         ks, ticket = request_session_key(args.kdc_host, args.kdc_port, args.id_a, args.id_b, ka)
-        authenticate_with_peer(args.peer_host, args.peer_port, ks, ticket)
+        authenticate_with_peer(args.peer_host, args.peer_port, ks, ticket, args.id_b)
     except (ConnectionError, ValueError) as err:
         print(f"failed: {err}")
 

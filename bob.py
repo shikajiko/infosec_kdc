@@ -5,6 +5,7 @@ from common.crypto import encrypt, decrypt
 from common.network import create_server, receive_text, send_text
 from common.protocol import parse_ticket
 from common.utils import KEY_LENGTH, generate_nonce, f
+from common.chat import chat
 
 def handle_session(conn, addr, kb):
     ticket = receive_text(conn)
@@ -19,7 +20,8 @@ def handle_session(conn, addr, kb):
     answer = int(decrypt(ks, receive_text(conn)))
     if answer != f(n2):
         raise ValueError("wrong answer to challenge")
-    print(f"{id_a} authenticated")
+    print(f"{id_a} authenticated. type /quit to exit")
+    chat(conn, ks, id_a)
 
 def main():
     parser = argparse.ArgumentParser()
