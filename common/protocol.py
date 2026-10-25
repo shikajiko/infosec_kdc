@@ -7,3 +7,4 @@ def build_request(id_a, id_b, n1):
 def parse_request(data):
     id_a, id_b, n1 = data.decode("ascii").split(SEP)
     return id_a, id_b, int(n1)
+
