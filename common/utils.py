@@ -1,6 +1,7 @@
 import secrets
 import string
 
+# 16 byte for AES-128 
 KEY_LENGTH = 16
 _ALPHABET = string.ascii_letters + string.digits
 

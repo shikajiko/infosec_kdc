@@ -1,15 +1,16 @@
 import argparse
 
-from common.network import create_server, receive_message
-from common.protocol import parse_request
-
+from common.network import create_server, receive_message, send_message
+from common.protocol import parse_request, build_kdc_reply
+from common.utils import generate_session_key
 
 def handle_request(conn, addr):
     data = receive_message(conn)
     id_a, id_b, n1 = parse_request(data)
     print(f"[{addr[0]}:{addr[1]}] request from {id_a} for {id_b}, N1 = {n1}")
-
-
+    session_key = generate_session_key()
+    send_message(conn, build_kdc_reply(session_key, id_a, id_b, n1))
+    
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", default="0.0.0.0")
@@ -23,6 +24,8 @@ def main():
         with conn:
             try:
                 handle_request(conn, addr)
+         
+ 
             except (ConnectionError, ValueError) as err:
                 print(f"bad request from {addr[0]}: {err}")
 
