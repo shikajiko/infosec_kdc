@@ -11,13 +11,14 @@ def request_session_key(kdc_host, kdc_port, id_a, id_b):
         print(f"sent request: {id_a} -> KDC, asking for {id_b}, N1 = {n1}")
         reply = receive_message(sock)
 
-    ks, reply_id_a, reply_id_b, reply_n1 = parse_kdc_reply(reply)
+    ks, reply_id_a, reply_id_b, reply_n1, ticket = parse_kdc_reply(reply)
     print(f"received reply: Ks = {ks}")
 
     if (reply_id_a, reply_id_b, reply_n1) != (id_a, id_b, n1):
         raise ValueError("KDC reply does not match request")
     print("reply valid: IDs and N1 match")
-    return ks
+    print(f"received ticket: {ticket}")
+    return ks, ticket
 
 
 def main():
@@ -28,7 +29,10 @@ def main():
     parser.add_argument("--id-b", default="Bob")
     args = parser.parse_args()
 
-    request_session_key(args.kdc_host, args.kdc_port, args.id_a, args.id_b)
+    try:
+        ks, ticket = request_session_key(args.kdc_host, args.kdc_port, args.id_a, args.id_b)
+    except (ConnectionError, ValueError) as err:
+        print(f"KDC exchange failed: {err}")
 
 
 if __name__ == "__main__":
