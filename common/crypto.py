@@ -1,10 +1,7 @@
-def encrypt(key, plaintext):
-    k = key.encode("ascii")
-    data = plaintext.encode("ascii")
-    return bytes(b ^ k[i % len(k)] for i, b in enumerate(data)).hex()
+from aes.modes import cbc_decrypt, cbc_encrypt
 
+def encrypt(key, plaintext):
+    return cbc_encrypt(key.encode("ascii"), plaintext.encode("ascii")).hex()
 
 def decrypt(key, ciphertext_hex):
-    k = key.encode("ascii")
-    data = bytes.fromhex(ciphertext_hex)
-    return bytes(b ^ k[i % len(k)] for i, b in enumerate(data)).decode("ascii")
+    return cbc_decrypt(key.encode("ascii"), bytes.fromhex(ciphertext_hex)).decode("ascii")
