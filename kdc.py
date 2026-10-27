@@ -1,6 +1,5 @@
 import argparse
 import threading
-from getpass import getpass
 
 from common.crypto import encrypt
 from common.network import create_server, receive_message, send_message
@@ -11,7 +10,7 @@ from kdc_core.key_store import KeyStore
 
 def prompt_key(store, entity_id):
     try:
-        store.set_key(entity_id, getpass(f"key for {entity_id} ({KEY_LENGTH} chars): "))
+        store.set_key(entity_id, input(f"key for {entity_id} ({KEY_LENGTH} chars): "))
     except ValueError as err:
         print(err)
         return False

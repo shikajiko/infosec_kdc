@@ -1,6 +1,5 @@
 import secrets
 import string
-from getpass import getpass
 
 # 16 byte for AES-128 
 KEY_LENGTH = 16
@@ -17,7 +16,7 @@ def f(n):
 
 def read_key(label):
     while True:
-        key = getpass(f"{label} master key ({KEY_LENGTH} chars): ")
+        key = input(f"{label} master key ({KEY_LENGTH} chars): ")
         if len(key) == KEY_LENGTH and key.isascii():
             return key
         print(f"key must be {KEY_LENGTH} ASCII characters")
