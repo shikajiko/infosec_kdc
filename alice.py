@@ -1,11 +1,11 @@
 import argparse
 
-from getpass import getpass
-from common.network import connect_to, send_message, receive_message, send_text, receive_text
-from common.protocol import build_request, parse_kdc_reply, parse_session_info
-from common.crypto import encrypt, decrypt
-from common.utils import KEY_LENGTH, generate_nonce, f
 from common.chat import chat
+from common.crypto import decrypt, encrypt
+from common.network import connect_to, receive_message, receive_text, send_message, send_text
+from common.protocol import build_request, parse_kdc_reply, parse_session_info
+from common.utils import KEY_LENGTH, f, generate_nonce, read_key
+
 
 def request_session_key(kdc_host, kdc_port, id_a, id_b, ka):
     n1 = generate_nonce()
@@ -33,7 +33,7 @@ def authenticate_with_peer(peer_host, peer_port, ks, ticket, id_b):
         print(f"received challenge: N2 = {n2}")
         send_text(sock, encrypt(ks, str(f(n2))))
         print(f"sent response: f(N2) = {f(n2)}")
-        print(f"handshake sent. type /quit to exit")
+        print("handshake sent. type /quit to exit")
         chat(sock, ks, id_b)
 
 
@@ -44,15 +44,30 @@ def main():
     parser.add_argument("--id-a", default="Alice")
     parser.add_argument("--id-b", default="Bob")
     parser.add_argument("--peer-host", required=True)
-    parser.add_argument("--peer-port", type=int, default=5000)
+    parser.add_argument("--peer-port", type=int, default=6000)
     args = parser.parse_args()
 
-    ka = getpass(f"{args.id_a} master key ({KEY_LENGTH} chars): ")
-    try:
-        ks, ticket = request_session_key(args.kdc_host, args.kdc_port, args.id_a, args.id_b, ka)
-        authenticate_with_peer(args.peer_host, args.peer_port, ks, ticket, args.id_b)
-    except (ConnectionError, ValueError) as err:
-        print(f"failed: {err}")
+    ka = read_key(args.id_a)
+    while True:
+        try:
+            parts = input(f"{args.id_a}> ").split()
+        except (EOFError, KeyboardInterrupt):
+            break
+        if not parts:
+            continue
+        if parts[0] == "quit":
+            break
+        if parts[0] == "setkey":
+            ka = read_key(args.id_a)
+        elif parts[0] == "connect":
+            id_b = parts[1] if len(parts) > 1 else args.id_b
+            try:
+                ks, ticket = request_session_key(args.kdc_host, args.kdc_port, args.id_a, id_b, ka)
+                authenticate_with_peer(args.peer_host, args.peer_port, ks, ticket, id_b)
+            except (OSError, ValueError) as err:
+                print(f"failed: {err}")
+        else:
+            print("commands: connect [id], setkey, quit")
 
 
 if __name__ == "__main__":

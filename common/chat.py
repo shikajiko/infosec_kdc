@@ -1,3 +1,4 @@
+import socket
 import threading
 
 from common.crypto import decrypt, encrypt
@@ -9,7 +10,8 @@ def _listen(sock, key, peer, done):
         while True:
             print(f"\n{peer}: {decrypt(key, receive_text(sock))}")
     except (OSError, ValueError):
-        print("\nconnection closed, press Enter to exit")
+        if not done.is_set():
+            print("\nconnection closed, press Enter to exit")
     finally:
         done.set()
 
@@ -28,3 +30,9 @@ def chat(sock, key, peer):
                 print("ASCII characters only")
     except (EOFError, KeyboardInterrupt, OSError):
         pass
+    finally:
+        done.set()
+        try:
+            sock.shutdown(socket.SHUT_RDWR)
+        except OSError:
+            pass
