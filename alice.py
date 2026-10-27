@@ -44,7 +44,7 @@ def main():
     parser.add_argument("--id-a", default="Alice")
     parser.add_argument("--id-b", default="Bob")
     parser.add_argument("--peer-host", required=True)
-    parser.add_argument("--peer-port", type=int, default=6000)
+    parser.add_argument("--peer-port", type=int, default=5000)
     args = parser.parse_args()
 
     ka = read_key(args.id_a)
