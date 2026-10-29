@@ -8,7 +8,9 @@ from common.network import receive_text, send_text
 def _listen(sock, key, peer, done):
     try:
         while True:
-            print(f"\n{peer}: {decrypt(key, receive_text(sock))}")
+            cipher = receive_text(sock)
+            print(f"\nreceived ciphertext: {cipher}")
+            print(f"{peer}: {decrypt(key, cipher)}")
     except (OSError, ValueError):
         if not done.is_set():
             print("\nconnection closed, press Enter to exit")
@@ -25,9 +27,12 @@ def chat(sock, key, peer):
             if line == "/quit" or done.is_set():
                 break
             try:
-                send_text(sock, encrypt(key, line))
+                cipher = encrypt(key, line)
             except UnicodeEncodeError:
                 print("ASCII characters only")
+                continue
+            print(f"sent ciphertext: {cipher}")
+            send_text(sock, cipher)
     except (EOFError, KeyboardInterrupt, OSError):
         pass
     finally:
